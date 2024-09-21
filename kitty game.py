@@ -1,6 +1,11 @@
 import pygame
 import random
 
+# need start screen, win screen, game over/ lose screen, player selector
+# fix rock objects to not random spawn
+# change images to custom-made ones
+# make video presentation for submission
+
 # Initialize Pygame
 pygame.init()
 
@@ -142,7 +147,7 @@ while running:
     fish_collisions = pygame.sprite.spritecollide(cat, fish_group, True)
     for fish in fish_collisions:
         fish_collected += 1
-        if fish_collected >= 20:
+        if fish_collected >= 5:
             level_over = True
             running = False
 
@@ -153,7 +158,6 @@ while running:
             running = False
 
     # Draw
-    screen.fill(WHITE)
     all_sprites.draw(screen)
 
     # Draw score and health

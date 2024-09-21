@@ -5,9 +5,17 @@ import random
 pygame.init()
 
 # Screen dimensions
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1000, 900
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Cat Side Scroller")
+
+#backgound
+background = pygame.image.load('background test.png')
+
+# Set up variables for background position
+bg_x1 = 0
+bg_x2 = WIDTH
+bg_speed = 5
 
 # Game variables
 cat_speed = 5
@@ -101,6 +109,20 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    # Move the background
+    bg_x1 -= bg_speed
+    bg_x2 -= bg_speed
+
+    # If the background has moved off the screen, reset its position
+    if bg_x1 <= -WIDTH:
+        bg_x1 = WIDTH
+    if bg_x2 <= -WIDTH:
+        bg_x2 = WIDTH
+
+    # Draw the background images
+    screen.blit(background, (bg_x1, 0))
+    screen.blit(background, (bg_x2, 0))
 
     # Spawn fish and obstacles
     if random.randint(1, 100) < 5:

@@ -1,6 +1,12 @@
 import pygame
 import random
 
+# need start screen, win screen, game over/ lose screen, player selector
+# fix rock objects to not random spawn
+# change images to custom-made ones
+# make video presentation for submission
+#integrate animations
+
 # Initialize Pygame
 pygame.init()
 
@@ -31,6 +37,13 @@ BLACK = (0, 0, 0)
 cat_img = pygame.image.load('cat test.png')  # Add your own cat image here
 fish_img = pygame.image.load('fish test.png')  # Add your own fish image here
 obstacle_img = pygame.image.load('rock obstacle test.png')  # Add your obstacle image here
+
+# Define game states
+START = "start"
+PLAYING = "playing"
+GAME_OVER = "game_over"
+WIN = "win"
+game_state = START
 
 # Cat class
 class Cat(pygame.sprite.Sprite):
@@ -98,69 +111,133 @@ obstacle_group = pygame.sprite.Group()
 cat = Cat()
 all_sprites.add(cat)
 
-# Game loop
-running = True
+# Clock
 clock = pygame.time.Clock()
 
+# Function for showing start screen
+def show_start_screen():
+    screen.fill(WHITE)
+    font = pygame.font.Font(None, 74)
+    text = font.render("Press SPACE to Start", True, BLACK)
+    screen.blit(text, (WIDTH // 4, HEIGHT // 2))
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting = False
+
+
+# Function for game over screen
+def show_game_over_screen():
+    screen.fill(WHITE)
+    font = pygame.font.Font(None, 74)
+    text = font.render("Game Over! Press R to Restart", True, BLACK)
+    screen.blit(text, (WIDTH // 6, HEIGHT // 2))
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    waiting = False
+
+
+# Function for win screen
+def show_win_screen():
+    screen.fill(WHITE)
+    font = pygame.font.Font(None, 74)
+    text = font.render("You Win! Press R to Restart", True, BLACK)
+    screen.blit(text, (WIDTH // 4, HEIGHT // 2))
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    waiting = False
+
+# Main game loop
+running = True
 while running:
-    clock.tick(60)  # 60 FPS
+    clock.tick(60)
 
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Move the background
-    bg_x1 -= bg_speed
-    bg_x2 -= bg_speed
+    if game_state == START:
+        show_start_screen()
+        game_state = PLAYING
+        cat_health = 3
+        fish_collected = 0
+        all_sprites.add(cat)  # Re-add the cat
 
-    # If the background has moved off the screen, reset its position
-    if bg_x1 <= -WIDTH:
-        bg_x1 = WIDTH
-    if bg_x2 <= -WIDTH:
-        bg_x2 = WIDTH
+    elif game_state == PLAYING:
+        # Move the background
+        bg_x1 -= bg_speed
+        bg_x2 -= bg_speed
 
-    # Draw the background images
-    screen.blit(background, (bg_x1, 0))
-    screen.blit(background, (bg_x2, 0))
+        if bg_x1 <= -WIDTH:
+            bg_x1 = WIDTH
+        if bg_x2 <= -WIDTH:
+            bg_x2 = WIDTH
 
-    # Spawn fish and obstacles
-    if random.randint(1, 100) < 5:
-        fish = Fish()
-        all_sprites.add(fish)
-        fish_group.add(fish)
+        screen.blit(background, (bg_x1, 0))
+        screen.blit(background, (bg_x2, 0))
 
-    if random.randint(1, 100) < 3:
-        obstacle = Obstacle()
-        all_sprites.add(obstacle)
-        obstacle_group.add(obstacle)
+        # Spawn fish and obstacles
+        if random.randint(1, 100) < 5:
+            fish = Fish()
+            all_sprites.add(fish)
+            fish_group.add(fish)
 
-    # Update sprites
-    all_sprites.update()
+        if random.randint(1, 100) < 3:
+            obstacle = Obstacle()
+            all_sprites.add(obstacle)
+            obstacle_group.add(obstacle)
 
-    # Check for collisions
-    fish_collisions = pygame.sprite.spritecollide(cat, fish_group, True)
-    for fish in fish_collisions:
-        fish_collected += 1
-        if fish_collected >= 20:
-            level_over = True
-            running = False
+        # Update sprites
+        all_sprites.update()
 
-    obstacle_collisions = pygame.sprite.spritecollide(cat, obstacle_group, True)
-    for obstacle in obstacle_collisions:
-        cat_health -= 1
-        if cat_health <= 0:
-            running = False
+        # Check for collisions
+        fish_collisions = pygame.sprite.spritecollide(cat, fish_group, True)
+        for fish in fish_collisions:
+            fish_collected += 1
+            if fish_collected >= 5:
+                game_state = WIN
 
-    # Draw
-    screen.fill(WHITE)
-    all_sprites.draw(screen)
+        obstacle_collisions = pygame.sprite.spritecollide(cat, obstacle_group, True)
+        for obstacle in obstacle_collisions:
+            cat_health -= 1
+            if cat_health <= 0:
+                game_state = GAME_OVER
 
-    # Draw score and health
-    font = pygame.font.Font(None, 36)
-    text = font.render(f"Fish: {fish_collected}  Health: {cat_health}", True, BLACK)
-    screen.blit(text, (10, 10))
+        # Draw
+        all_sprites.draw(screen)
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"Fish: {fish_collected}  Health: {cat_health}", True, BLACK)
+        screen.blit(text, (10, 10))
 
-    pygame.display.flip()
+        pygame.display.flip()
+
+    elif game_state == GAME_OVER:
+        show_game_over_screen()
+        game_state = START  # Restart the game
+
+    elif game_state == WIN:
+        show_win_screen()
+        game_state = START  # Restart the game
 
 pygame.quit()
